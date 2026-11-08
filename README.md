@@ -4,11 +4,13 @@ Learnr is a private reading companion for Chromium browsers. It turns the page y
 
 > **The workflow:** read a page → ask questions → keep evidence and personal notes → create one or more focused drafts → edit and save.
 
-Learnr has no account, analytics service, sync server, or Learnr backend. Browser data stays local. AI requests go directly from the extension to OpenRouter and the upstream model you select.
+Learnr has no account, analytics service, sync server, or Learnr backend. Settings and conversation storage stay in your browser profile. Requested AI work sends the relevant messages, source material, or note passages to OpenRouter and the selected upstream providers; embedding and transcription also send their inputs. See the privacy table below.
 
 ## Five-minute setup
 
-1. Run `npm install` and `npm run build`.
+Prerequisites: Node.js 20.19+ on the 20.x line, or Node.js 22.12+ (as required by Vite 7), npm, and a supported Chromium browser. AI features require an OpenRouter key and available credit; local features such as highlights and duplicate-tab detection do not require model calls.
+
+1. From the project folder, run `npm ci` and `npm run build`.
 2. Open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select `dist/`.
 3. Open an ordinary webpage and select the Learnr toolbar icon. The side panel is the default surface.
 4. Open Settings, paste an [OpenRouter](https://openrouter.ai/) API key, and select **Test connection & save**.
@@ -18,7 +20,7 @@ Learnr has no account, analytics service, sync server, or Learnr backend. Browse
 
 The Arc build opens Learnr as a reusable tab for the right side of Arc Split View. The webpage belongs on the left. Learnr follows the visible page beside it, returning to the corresponding conversation when that page changes, even while the Learnr pane has keyboard focus. **Follow active tab** can be disabled in Settings to stay on one conversation.
 
-1. Run `npm install` and `npm run build:arc`.
+1. From the project folder, run `npm ci` and `npm run build:arc`.
 2. Open `arc://extensions`, enable **Developer mode**, choose **Load unpacked**, and select `dist-arc/`.
 3. Open an ordinary HTTP(S) webpage and select the **learnr (Arc)** extension icon. Learnr opens in an adjacent tab; subsequent clicks reuse that tab in the same window.
 4. Drag the Learnr tab into the right side of the webpage to create Arc Split View. Split creation uses Arc's own UI because Arc does not expose a documented extension API for it.
@@ -33,6 +35,8 @@ Two Chrome concepts have no Arc extension equivalent:
 - **Link current tab group** is omitted. Use **Add open tabs** or **New connected tab** to build the same multi-page Learnr conversation manually.
 
 See [the Arc compatibility audit](docs/arc-compatibility.md) for the complete feature and API matrix.
+
+## Settings and standalone views
 
 The Settings button opens an overlay without leaving your conversation. Use its expand action for the full `settings.html` page. **Open in tab** opens the same live conversation in a wide standalone view; it does not create a frozen copy.
 
@@ -125,6 +129,7 @@ External filesystem changes cannot be watched continuously. Select **Refresh cha
 | --- | --- | --- |
 | Open Learnr | `Ctrl+Shift+L` / `Command+Shift+L` | Toggle Chrome's native side panel or open/focus Arc's Learnr tab |
 | Create draft | `Ctrl+Shift+D` / `Command+Shift+D` | Open Learnr if needed and create a draft |
+| New connected tab | `Ctrl+Shift+K` / `Command+Shift+K` | Open a tab linked to the current Learnr conversation |
 | Create draft in composer | `Command+Enter` | Same draft path while the composer is focused |
 | Suggestions | `Control+1`–`Control+3` | Insert a configured chat suggestion |
 
@@ -136,8 +141,8 @@ The browser owns global extension shortcut registration. Change bindings at `chr
 | --- | --- | --- |
 | Settings, API key, sessions, history, usage events | Extension storage and IndexedDB | Only as required below |
 | Page/PDF/image/video context and messages | Session/history as needed | To OpenRouter and the selected upstream model for requested AI work |
-| Note and image folders | File System Access handles plus files you save | No |
-| Indexed notes, chunks, hashes, vectors | IndexedDB or an explicit portable export | Markdown chunks and semantic queries go to the embedding model |
+| Note and image folders | File System Access handles plus files you save | Folder handles stay local; selected content can be sent for requested AI work |
+| Indexed notes, chunks, hashes, vectors | IndexedDB or an explicit portable export | Markdown chunks and semantic queries go to the embedding model; saved-note tool results go to the Chat model |
 | AutoGroup preview | Memory; Undo IDs in session storage | Sanitized tab titles and URL origin/path after explicit activation |
 | Dictation and explicitly captured tab audio | Memory and released after transcription | To the selected transcription model |
 
@@ -153,7 +158,7 @@ OpenRouter routes models to upstream providers. BYOK credentials remain in OpenR
 ## Development
 
 ```bash
-npm install
+npm ci
 npm run typecheck
 npm test
 npm run build
@@ -162,9 +167,15 @@ npm run verify:build
 npm run verify:build:arc
 ```
 
+Each production build runs TypeScript checks and its target’s build verification automatically. `npm run dev` starts Vite for development; load a production output folder in the browser to exercise the packaged extension.
+
 Production builds keep `package.json`, `package-lock.json`, the manifest, generated build information, and Settings About in sync. Learnr’s app version is permanently pinned to `1.0.0`; build IDs continue changing so individual builds remain identifiable.
 
 Vite builds `sidepanel.html`, `settings.html`, `history.html`, `note.html`, the microphone permission page, the offscreen tab-audio recorder, service worker, and content script into `dist/` for Chromium or `dist-arc/` for Arc. After rebuilding, select **Reload** on the browser's extensions page and refresh source tabs with an old content script.
+
+### Keeping private data out of Git
+
+The repository excludes dependency folders, generated builds, environment files, common credential files, local data, exports, backups, and saved Markdown notes. The Markdown exceptions are this README, project documentation under `docs/`, and the built-in `src/docs/learnr-guide.md`. Keep personal notes outside those documentation paths. Before committing, review staged files and their contents; ignore rules do not detect secrets embedded in source code or remove files already tracked by Git.
 
 ### Troubleshooting
 

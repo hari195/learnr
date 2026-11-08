@@ -1,0 +1,33 @@
+# Dependencies and generated output
+node_modules/
+dist/
+dist-*/
+*.tsbuildinfo
+coverage/
+*.log
+.DS_Store
+
+# Credentials and local configuration
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+.aws/
+.codex/
+.agents/
+
+# Private notes, exports, and local application data
+*.md
+!README.md
+!docs/*.md
+!src/docs/learnr-guide.md
+notes/
+saved-notes/
+exports/
+backups/
+data/
+*.sqlite*
+*.db
+*.zip

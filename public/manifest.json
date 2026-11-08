@@ -1,0 +1,76 @@
+{
+  "manifest_version": 3,
+  "name": "learnr",
+  "description": "Read with AI, shape what matters, and save it to Obsidian.",
+  "version": "1.0.0",
+  "icons": {
+    "16": "icon-16.png",
+    "32": "icon-32.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  },
+  "minimum_chrome_version": "116",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabs",
+    "tabGroups",
+    "sidePanel",
+    "tabCapture",
+    "offscreen"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*",
+    "https://openrouter.ai/*"
+  ],
+  "optional_host_permissions": [
+    "file:///*"
+  ],
+  "action": {
+    "default_title": "Open learnr",
+    "default_icon": {
+      "16": "icon-16.png",
+      "32": "icon-32.png",
+      "48": "icon-48.png",
+      "128": "icon-128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "options_ui": {
+    "page": "settings.html",
+    "open_in_tab": true
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L",
+        "mac": "Command+Shift+L"
+      }
+    },
+    "create-draft": {
+      "description": "Create an editable note draft",
+      "suggested_key": {
+        "default": "Ctrl+Shift+D",
+        "mac": "Command+Shift+D"
+      }
+    },
+    "open-connected-tab": {
+      "description": "Open a new tab connected to the current learnr conversation",
+      "suggested_key": {
+        "default": "Ctrl+Shift+K",
+        "mac": "Command+Shift+K"
+      }
+    }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src http: https: data:"
+  }
+}

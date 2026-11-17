@@ -164,6 +164,7 @@ export function Settings({ settings: activeSettings, setSettings, error, setErro
   const [lifetimeStats, setLifetimeStats] = useState<LifetimeStats>(EMPTY_LIFETIME_STATS);
   const [shortcuts, setShortcuts] = useState<Record<string, string>>({});
   const [loadingShortcuts, setLoadingShortcuts] = useState(true);
+  const [shortcutsUnavailable, setShortcutsUnavailable] = useState(false);
   const [newLibraryName, setNewLibraryName] = useState('');
   const [newLibraryModel, setNewLibraryModel] = useState(settings.savedNotes.embeddingModel);
   const importIndexRef = useRef<HTMLInputElement | null>(null);
@@ -230,13 +231,14 @@ export function Settings({ settings: activeSettings, setSettings, error, setErro
     const refresh = () => {
       setLoadingShortcuts(true);
       void getExtensionCommands().then((commands) => {
+        setShortcutsUnavailable(false);
         setShortcuts(Object.fromEntries(commands.map((command) => [command.name ?? '', command.shortcut ?? ''])));
-      }).catch((cause) => setError(errorMessage(cause))).finally(() => setLoadingShortcuts(false));
+      }).catch(() => setShortcutsUnavailable(true)).finally(() => setLoadingShortcuts(false));
     };
     refresh();
     window.addEventListener('focus', refresh);
     return () => window.removeEventListener('focus', refresh);
-  }, [setError]);
+  }, []);
 
   useEffect(() => {
     setPromptDraft(settings.systemPromptTemplate);
@@ -886,14 +888,15 @@ export function Settings({ settings: activeSettings, setSettings, error, setErro
     <section className={`settings-section shortcuts-section dashboard-only${globalSettings?.keyboardShortcutsEnabled === false ? ' feature-disabled' : ''}`}>
       <div className="settings-section-title"><div><h2>Keyboard shortcuts</h2><p className="settings-copy">Launch learnr or create a draft without leaving the keyboard.</p></div><label className="feature-toggle" title="Toggle keyboard shortcuts"><input aria-label="Keyboard shortcuts" type="checkbox" checked={globalSettings?.keyboardShortcutsEnabled ?? true} onChange={(event) => globalSettings && void saveGlobalSettings({ ...globalSettings, keyboardShortcutsEnabled: event.target.checked })} /></label></div>
       <dl className="shortcut-list">
-        <div><dt>Open learnr</dt><dd>{loadingShortcuts ? 'Loading…' : displayShortcut(shortcuts[LAUNCH_COMMAND])}</dd></div>
-        <div><dt>Create draft</dt><dd>{loadingShortcuts ? 'Loading…' : displayShortcut(shortcuts[CREATE_DRAFT_COMMAND])}</dd></div>
-        <div><dt>New connected tab</dt><dd>{loadingShortcuts ? 'Loading…' : displayShortcut(shortcuts[OPEN_CONNECTED_TAB_COMMAND])}</dd></div>
+        <div><dt>Open learnr</dt><dd>{loadingShortcuts ? 'Loading…' : shortcutsUnavailable ? 'Unavailable' : displayShortcut(shortcuts[LAUNCH_COMMAND])}</dd></div>
+        <div><dt>Create draft</dt><dd>{loadingShortcuts ? 'Loading…' : shortcutsUnavailable ? 'Unavailable' : displayShortcut(shortcuts[CREATE_DRAFT_COMMAND])}</dd></div>
+        <div><dt>New connected tab</dt><dd>{loadingShortcuts ? 'Loading…' : shortcutsUnavailable ? 'Unavailable' : displayShortcut(shortcuts[OPEN_CONNECTED_TAB_COMMAND])}</dd></div>
         <div><dt>Select suggestion 1</dt><dd>⌃1</dd></div>
         <div><dt>Select suggestion 2</dt><dd>⌃2</dd></div>
         <div><dt>Select suggestion 3</dt><dd>⌃3</dd></div>
         <div><dt>Create note from chat</dt><dd>⌘↵</dd></div>
       </dl>
+      {shortcutsUnavailable && <p className="fine-print">Shortcut bindings are unavailable. Use Change shortcuts to view them in the browser.</p>}
       <button className="secondary full" onClick={() => void openShortcutManager().catch((cause) => setError(`Could not open ${BROWSER_NAME} extension shortcuts: ${errorMessage(cause)}`))}>Change shortcuts</button>
       <p className="fine-print">{BROWSER_NAME} manages the global extension shortcuts. The Control-number suggestion shortcuts and Command-Return work locally while learnr is focused and are not remapped by the browser.</p>
     </section>

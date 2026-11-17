@@ -651,7 +651,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
   if (message?.type === 'LEARNR_COMMANDS_GET') {
-    void chrome.commands.getAll().then((commands) => sendResponse({ ok: true, commands })).catch((error) => sendResponse({ ok: false, error: error instanceof Error ? error.message : String(error) }));
+    void Promise.resolve().then(() => chrome.commands.getAll()).then((commands) => sendResponse({ ok: true, commands })).catch((error) => sendResponse({ ok: false, error: error instanceof Error ? error.message : String(error) }));
     return true;
   }
   if (message?.type === 'LEARNR_OPEN_OPTIONS') {
